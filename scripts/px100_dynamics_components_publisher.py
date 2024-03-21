@@ -76,6 +76,22 @@ class RobotKinematics:
                           [0,   1,   0,   0],
                           [0,   0,   1,   z],
                           [0,   0,   0,   1]])
+
+
+class RobotDynamics:
+    def __init__(self):
+        self.kin = RobotKinematics()
+
+    # def get_body_jacobian(self):
+
+    # def get_com_jacobian(self):
+
+    # def get_mass_matrix(self):
+
+    # def get_coriolis_accel(self):
+
+    # def get_gravity_vector(self):
+
     
 
     
@@ -88,7 +104,7 @@ def main():
 
         print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
         
-        rospy.spin()
+        # rospy.spin()
 
 if __name__ == '__main__':
     main()

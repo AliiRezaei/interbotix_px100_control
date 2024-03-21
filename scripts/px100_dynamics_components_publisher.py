@@ -1,10 +1,11 @@
 import numpy as np
-from math import cos, sin, sqrt
+from math import cos, sin, sqrt, inf
 import rospy
 from sensor_msgs.msg import JointState
+from interbotix_xs_msgs.msg import JointGroupCommand
 
 
-class RobotKinematics:
+class RobotMotion:
     def __init__(self):
 
         self.L1 = 0.08945
@@ -15,6 +16,20 @@ class RobotKinematics:
         self.Lr = sqrt(self.L2**2 + self.Lm**2)
 
         self.q = np.zeros([7, 1])
+
+        self.e = np.array([[0.0],
+                           [0.0],
+                           [0.0],
+                           [0.0]])
+        self.ie = np.array([[0.0],
+                           [0.0],
+                           [0.0],
+                           [0.0]])
+
+        self.joint_command = JointGroupCommand()
+        self.joint_command.name = "arm"
+        self.joint_command_pub = rospy.Publisher("px100/commands/joint_group", JointGroupCommand, queue_size=10)
+
 
         node_name = "motion_info_publisher"
         rospy.init_node(node_name, anonymous=True)
@@ -76,12 +91,22 @@ class RobotKinematics:
                           [0,   1,   0,   0],
                           [0,   0,   1,   z],
                           [0,   0,   0,   1]])
+    
+    def pi_controller(self):
+        P = 100.0 * np.eye(4, 4)
+        I = 10.0 * np.eye(4, 4)
 
+        q_d = np.array([0.0, 0.0, 0.0, 0.0])
+        q_d = np.transpose(q_d)
 
-class RobotDynamics:
-    def __init__(self):
-        self.kin = RobotKinematics()
+        self.e = np.array(q_d - self.q[:4], dtype = float)
+        self.ie = np.array(self.ie + self.e)
+        # print(self.e)
+        # print(self.ie)
 
+        u = list(np.array(P @ self.e, dtype=float))
+        return u
+    
     # def get_body_jacobian(self):
 
     # def get_com_jacobian(self):
@@ -92,19 +117,27 @@ class RobotDynamics:
 
     # def get_gravity_vector(self):
 
-    
 
     
 def main():
-    robot = RobotKinematics()
+    robot = RobotMotion()
     while not rospy.is_shutdown():
-        H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
+        # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
 
-        H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
+        # H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
 
-        print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
+        # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
         
         # rospy.spin()
+
+        u = robot.pi_controller()
+        # print(u)
+        # print(type(u[0]))
+        robot.joint_command.name = "arm"
+        robot.joint_command.cmd = [u[0], u[1], u[2], u[3]]
+        # robot.joint_command.cmd = [0.0, 0.0, 0.0, 0.0]
+        robot.joint_command_pub.publish(robot.joint_command)
+
 
 if __name__ == '__main__':
     main()

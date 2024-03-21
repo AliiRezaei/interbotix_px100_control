@@ -83,7 +83,7 @@ class RobotDynamics:
         self.kin = RobotKinematics()
 
     # def get_body_jacobian(self):
-# .
+
     # def get_com_jacobian(self):
 
     # def get_mass_matrix(self):

@@ -17,18 +17,16 @@ class RobotMotion:
 
         self.q = np.zeros([7, 1])
 
-        self.e = np.array([[0.0],
-                           [0.0],
-                           [0.0],
-                           [0.0]])
-        self.ie = np.array([[0.0],
-                           [0.0],
-                           [0.0],
-                           [0.0]])
+        self.e = [0.0, 0.0, 0.0, 0.0]
+        self.e = np.array(self.e, dtype=float)
+        # self.e = np.transpose(self.e)
+        self.ie = [0.0, 0.0, 0.0, 0.0]
+        self.ie = np.array(self.ie, dtype=float)
+        # self.ie = np.transpose(self.ie)
 
         self.joint_command = JointGroupCommand()
         self.joint_command.name = "arm"
-        self.joint_command_pub = rospy.Publisher("px100/commands/joint_group", JointGroupCommand, queue_size=10)
+        self.joint_command_pub = rospy.Publisher("px100/commands/joint_group", JointGroupCommand, queue_size=1)
 
 
         node_name = "motion_info_publisher"
@@ -97,15 +95,18 @@ class RobotMotion:
         I = 10.0 * np.eye(4, 4)
 
         q_d = np.array([0.0, 0.0, 0.0, 0.0])
-        q_d = np.transpose(q_d)
+        # q_d = np.transpose(q_d)
 
-        self.e = np.array(q_d - self.q[:4], dtype = float)
-        self.ie = np.array(self.ie + self.e)
+        q = self.q[:4]
+        # q = np.transpose(q)
+        # print(q_d)
+        self.e = np.array(q_d - q, dtype=float)
+        self.ie = np.array(self.ie + self.e, dtype=float)
         # print(self.e)
         # print(self.ie)
 
-        u = list(np.array(P @ self.e, dtype=float))
-        return u
+        u = list(P @ self.e)
+        return [-100*x for x in self.q[:4]]
     
     # def get_body_jacobian(self):
 
@@ -132,9 +133,9 @@ def main():
 
         u = robot.pi_controller()
         # print(u)
-        # print(type(u[0]))
+        # print(type(u))
         robot.joint_command.name = "arm"
-        robot.joint_command.cmd = [u[0], u[1], u[2], u[3]]
+        robot.joint_command.cmd = u
         # robot.joint_command.cmd = [0.0, 0.0, 0.0, 0.0]
         robot.joint_command_pub.publish(robot.joint_command)
 

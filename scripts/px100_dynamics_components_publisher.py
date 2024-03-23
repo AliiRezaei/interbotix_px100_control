@@ -1,5 +1,5 @@
 import numpy as np
-from math import cos, sin, sqrt, inf
+from math import cos, sin, sqrt, pi
 import rospy
 from sensor_msgs.msg import JointState
 from interbotix_xs_msgs.msg import JointGroupCommand
@@ -15,13 +15,15 @@ class RobotMotion:
         self.L4 = 0.08605
         self.Lr = sqrt(self.L2**2 + self.Lm**2)
 
-        self.q = np.zeros([7, 1])
+        self.q = np.zeros([4, 1])
+        # self.q_d = np.array([0.0, 0.0, 0.0, 0.0])
 
-        self.e = [0.0, 0.0, 0.0, 0.0]
-        self.e = np.array(self.e, dtype=float)
+        self.e = tuple([0.0, 0.0, 0.0, 0.0])
+        self.ie = tuple([0.0, 0.0, 0.0, 0.0])
+        # self.e = np.array(self.e, dtype=float)
         # self.e = np.transpose(self.e)
-        self.ie = [0.0, 0.0, 0.0, 0.0]
-        self.ie = np.array(self.ie, dtype=float)
+        # self.ie = [0.0, 0.0, 0.0, 0.0]
+        # self.ie = np.array(self.ie, dtype=float)
         # self.ie = np.transpose(self.ie)
 
         self.joint_command = JointGroupCommand()
@@ -36,7 +38,8 @@ class RobotMotion:
         rospy.Subscriber(topic_name, JointState, self.joint_state_callback)
 
     def joint_state_callback(self, msg):
-        self.q = msg.position
+        self.q = msg.position[:4]
+        # print(type(self.q), type(msg.position[:4]))
    
 
     def get_homogeneous_transformation(self):
@@ -90,23 +93,29 @@ class RobotMotion:
                           [0,   0,   1,   z],
                           [0,   0,   0,   1]])
     
+    def totuple(self, a):
+        try:
+            return tuple(self.totuple(i) for i in a)
+        except TypeError:
+            return a
+    
     def pi_controller(self):
         P = 100.0 * np.eye(4, 4)
         I = 10.0 * np.eye(4, 4)
 
-        q_d = np.array([0.0, 0.0, 0.0, 0.0])
-        # q_d = np.transpose(q_d)
+        # self.e = [-1*x for x in self.q[:4]]
+        # self.ie = [x+y for x, y in zip(self.ie, self.e)]
+        q_d = tuple([0.0, 0.0, 0.0, 0.0])
+        # q_d = np.zeros([1, 4])
+        # self.e = q_d - self.q
+        self.e = tuple(map(lambda i, j: i - j, q_d, self.q))
+        # self.ie = self.e + self.ie
+        # print(self.e, type(self.e))
+        
+        u =  tuple(1 * np.array(self.e))
 
-        q = self.q[:4]
-        # q = np.transpose(q)
-        # print(q_d)
-        self.e = np.array(q_d - q, dtype=float)
-        self.ie = np.array(self.ie + self.e, dtype=float)
-        # print(self.e)
-        # print(self.ie)
-
-        u = list(P @ self.e)
-        return [-100*x for x in self.q[:4]]
+        print(u, type(u))
+        return u
     
     # def get_body_jacobian(self):
 
@@ -136,9 +145,8 @@ def main():
         # print(type(u))
         robot.joint_command.name = "arm"
         robot.joint_command.cmd = u
-        # robot.joint_command.cmd = [0.0, 0.0, 0.0, 0.0]
+        # robot.joint_command.cmd = (0.0, 0.0, 0.0, 0.0)
         robot.joint_command_pub.publish(robot.joint_command)
-
 
 if __name__ == '__main__':
     main()

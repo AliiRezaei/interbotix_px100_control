@@ -98,7 +98,7 @@ class RobotMotion:
         except TypeError:
             return a
     
-    def pi_controller(self):
+    def pid_controller(self):
         kp = 100
         ki = 10
         kd = 20
@@ -142,7 +142,7 @@ def main():
         
         # rospy.spin()
 
-        u = robot.pi_controller()
+        u = robot.pid_controller()
         # print(u)
         # print(type(u))
         robot.joint_command.name = "arm"

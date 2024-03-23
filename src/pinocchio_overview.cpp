@@ -1,11 +1,13 @@
 
-// include piinocchhio necessary libraries :
+// include pinocchhio necessary libraries :
 #include "pinocchio/fwd.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 #include "pinocchio/algorithm/joint-configuration.hpp"
 #include "pinocchio/algorithm/kinematics.hpp"
 #include "pinocchio/parsers/sample-models.hpp"
 #include "pinocchio/algorithm/rnea.hpp"
+#include "pinocchio/algorithm/crba.hpp"
+#include "pinocchio/algorithm/compute-all-terms.hpp"
 #include <iostream>
  
 // include ros necessary libraries :
@@ -25,42 +27,57 @@ int main(int argc, char ** argv)
 
   // load the URDF model :
   Model model;
-  pinocchio::urdf::buildModel(urdf_filename,model);
+  pinocchio::urdf::buildModel(urdf_filename, model);
   std::cout << "model name: " << model.name << std::endl;
   
   // create data required by the algorithms :
   Data data(model);
   
   // sample a random configuration :
-  Eigen::VectorXd q = randomConfiguration(model);
+  // Eigen::VectorXd q = randomConfiguration(model);
+  Eigen::VectorXd q(6);
+  q << 1.0, 0.5, 0.3, 0.2, 0.4, 0.0;
+
+  Eigen::VectorXd v(5);
+  v << 0.15, 0.1, 0.05, 0.12, 0.0;
+
+  Eigen::VectorXd a(5);
+  a << 0.0, 0.0, 0.0, 0.0, 0.0;
+
   // std::cout << "q: " << q.transpose() << std::endl;
   // Eigen::VectorXd q = pinocchio::neutral(model);
   // Eigen::VectorXd q = Eigen::VectorXd::Zero(model.nv+1);
-  Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
-  v(1) = 1; v(2) = 1; //v(2, 0) = 1; v(3, 0) = 1;
-  Eigen::VectorXd a = Eigen::VectorXd::Zero(model.nv);
+  // Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
+
+  // Eigen::VectorXd a = Eigen::VectorXd::Zero(model.nv);
  
   // print configuration :
   std::cout << "q: " << q.transpose() << std::endl;
   std::cout << "v: " << v.transpose() << std::endl;
   std::cout << "a: " << a.transpose() << std::endl;
 
-  // inverse dynamics :
-  const Eigen::VectorXd & tau = pinocchio::rnea(model,data,q,v,a);
-  std::cout << "tau = " << tau.transpose() << std::endl;
+  // mass matrix :
+  pinocchio::computeAllTerms(model, data, q, v);
+  // const Eigen::MatrixXd & M = pinocchio::crba(model, data, q);
+  std::cout << "mass matrix = " << data.M << std::endl;
 
-  std::cout << "mass matrix is = " << data.M << std::endl;
+  // coriolis, centrifugal, gravity :
+  const Eigen::VectorXd & b = pinocchio::rnea(model, data, q, v, a);
+  std::cout << "Coriolis, centrifugal, gravity = " << b.transpose() << std::endl;
+
+  // std::cout << "M matrix is = " << data.M << std::endl;
+  // std::cout << "G matrix is = " << pinocchio::computeGeneralizedGravity(model, data, q) << std::endl;
 
 
-  // perform the forward kinematics over the kinematic tree :
-  forwardKinematics(model,data,q);
+  // // perform the forward kinematics over the kinematic tree :
+  // forwardKinematics(model,data,q);
  
-  // print out the placement of each joint of the kinematic tree
-  for(JointIndex joint_id = 0; joint_id < (JointIndex)model.njoints; ++joint_id)
-    std::cout << std::setw(24) << std::left
-              << model.names[joint_id] << ": "
-              << std::fixed << std::setprecision(2)
-              << data.oMi[joint_id].translation().transpose()
-              << std::endl;
+  // // print out the placement of each joint of the kinematic tree
+  // for(JointIndex joint_id = 0; joint_id < (JointIndex)model.njoints; ++joint_id)
+  //   std::cout << std::setw(24) << std::left
+  //             << model.names[joint_id] << ": "
+  //             << std::fixed << std::setprecision(2)
+  //             << data.oMi[joint_id].translation().transpose()
+  //             << std::endl;
 }
 

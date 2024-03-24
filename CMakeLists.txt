@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
+  std_msgs
   pinocchio
   interbotix_xs_msgs
 )

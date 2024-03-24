@@ -17,6 +17,7 @@
  
 // include ros necessary libraries :
 #include "ros/ros.h"
+#include "std_msgs/Float32MultiArray.h"
 
 // define model URDF directory path :
 #ifndef PINOCCHIO_MODEL_DIR
@@ -57,17 +58,46 @@ int main(int argc, char ** argv)
   std::cout << "q: " << q.transpose() << std::endl;
   std::cout << "v: " << v.transpose() << std::endl;
   std::cout << "a: " << a.transpose() << std::endl;
+  std::cout << "model.nv: " << model.nv << std::endl;
 
+  
   // mass matrix :
-  // Eigen::MatrixXd M = pinocchio::crba(model, data, q);
-  // std::cout << "Done!" << std::endl;
   pinocchio::crba(model, data, q);
-  std::cout << "mass matrix = " << data.M << std::endl;
+  for(Eigen::Index row = 0; row < model.nv; row++)
+  {
+    for(Eigen::Index col = 0; col < model.nv; col++)
+    {
+      if(row > col)
+      {
+        data.M(row, col) = data.M(col, row);
+      }
+    }
+  }
+  std::cout << "\n mass matrix = \n" << data.M << std::endl;
+
+
 
   // coriolis, centrifugal, gravity :
   const Eigen::VectorXd & b = pinocchio::rnea(model, data, q, v, a);
-  std::cout << "coriolis, centrifugal, gravity = " << b.transpose() << std::endl;
+  std::cout << "\n coriolis, centrifugal, gravity = \n" << b.transpose() << std::endl;
 
-  // return 0;
+
+  // ROS :
+  ros::init(argc, argv, "pinocchio_dynamics_publisher");
+  ros::NodeHandle nh;
+
+  ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("matrix_data", 1);
+
+  ros::Rate rate(10);
+
+  std_msgs::Float32MultiArray msg;
+  msg.data = {1.0, 2.0, 3.0};
+  while(ros::ok())
+  {
+    pub.publish(msg);
+    ros::spin();
+    rate.sleep();
+  }
+
 }
 

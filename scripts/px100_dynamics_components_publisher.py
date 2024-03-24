@@ -16,6 +16,7 @@ class RobotMotion:
         self.Lr = sqrt(self.L2**2 + self.Lm**2)
 
         self.q = np.zeros([4, 1])
+        self.q_d = tuple([0.0, 0.0, 0.0, 0.0])
 
         self.e = tuple([0.0, 0.0, 0.0, 0.0])
         self.e_prev = tuple([0.0, 0.0, 0.0, 0.0])
@@ -24,7 +25,6 @@ class RobotMotion:
         self.de = tuple([0.0, 0.0, 0.0, 0.0])
 
         self.joint_command = JointGroupCommand()
-        self.joint_command.name = "arm"
         self.joint_command_pub = rospy.Publisher("px100/commands/joint_group", JointGroupCommand, queue_size=1)
 
 
@@ -107,9 +107,7 @@ class RobotMotion:
 
         dt = self.t_now - self.t_prev
 
-        q_d = tuple([0.0, 0.0, 0.0, 0.0])
-
-        self.e = tuple(map(lambda i, j: i - j, q_d, self.q))
+        self.e = tuple(map(lambda i, j: i - j, self.q_d, self.q))
         self.ie = tuple(map(lambda i, j: i*dt + j, self.e, self.ie))
         self.de = tuple(map(lambda i, j: (i - j)/dt, self.e, self.e_prev))
 

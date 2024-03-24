@@ -137,7 +137,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/interbotix_xsarm_dynamics_node.cpp)
 add_executable(test_go_to_home src/test_go_to_home.cpp)
-add_executable(pinocchio_overview_1 src/pinocchio_overview.cpp)
+add_executable(pinocchio_overview src/pinocchio_overview.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -155,8 +155,8 @@ add_executable(pinocchio_overview_1 src/pinocchio_overview.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(test_go_to_home ${catkin_LIBRARIES})
-target_link_libraries(pinocchio_overview_1 ${catkin_LIBRARIES})
-target_link_libraries(pinocchio_overview_1 pinocchio::pinocchio)
+target_link_libraries(pinocchio_overview ${catkin_LIBRARIES})
+target_link_libraries(pinocchio_overview pinocchio::pinocchio)
 
 
 #############

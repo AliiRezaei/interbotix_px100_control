@@ -90,14 +90,16 @@ int main(int argc, char ** argv)
 
   ros::Rate rate(10);
 
-  std_msgs::Float32MultiArray msg;
-  msg.data = {1.0, 2.0, 3.0};
+  // std_msgs::Float32MultiArray msg;
+  // msg.data = {1.0, 2.0, 3.0};
   while(ros::ok())
   {
+    std_msgs::Float32MultiArray msg;
+    msg.data = {1.0, 2.0};
     pub.publish(msg);
-    ros::spin();
+    // ros::spin();
     rate.sleep();
   }
-
+  return 0;
 }
 

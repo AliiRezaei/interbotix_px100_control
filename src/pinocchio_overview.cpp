@@ -18,12 +18,21 @@
 // include ros necessary libraries :
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "sensor_msgs/JointState.h"
 
 // define model URDF directory path :
 #ifndef PINOCCHIO_MODEL_DIR
   #define PINOCCHIO_MODEL_DIR "/home/ali/interbotix_ws/src/interbotix_ros_manipulators/interbotix_ros_xsarms/interbotix_xsarm_descriptions/urdf/"
 #endif
- 
+
+
+void joint_state_callback(sensor_msgs::JointState msg)
+{
+  ROS_INFO("msg : []");
+}
+
+
+
 int main(int argc, char ** argv)
 {
   using namespace pinocchio;
@@ -40,16 +49,11 @@ int main(int argc, char ** argv)
   Data data(model);
   
   // // sample a random configuration :
-  // Eigen::VectorXd q(6);
-  // q << 1.0, 0.5, 0.3, 0.2, 0.4, 0.0;
-
-  // Eigen::VectorXd v(5);
-  // v << 0.15, 0.1, 0.05, 0.12, 0.0;
-
-  // Eigen::VectorXd a(5);
-  // a << 0.0, 0.0, 0.0, 0.0, 0.0;
- 
   Eigen::VectorXd q = pinocchio::neutral(model);
+  q(0) = 1.0;
+  q(1) = 1.5;
+  q(2) = 0.3;
+  q(3) = 0.5;
   Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
   Eigen::VectorXd a = Eigen::VectorXd::Zero(model.nv);
 
@@ -60,7 +64,29 @@ int main(int argc, char ** argv)
   std::cout << "a: " << a.transpose() << std::endl;
   std::cout << "model.nv: " << model.nv << std::endl;
 
+
+  // ROS :
+  ros::init(argc, argv, "pinocchio_dynamics_publisher");
+  ros::NodeHandle nh;
+
+  ros::Publisher mass_matrix_pub = nh.advertise<std_msgs::Float32MultiArray>("mass_matrix_data", 1);
+  ros::Subscriber joint_state_sub = nh.subscribe("/px100/joint_states", 1, joint_state_callback);
+
+  ros::Rate pub_rate(10);
   
+  std_msgs::Float32MultiArray mass_matrix_msg;
+  mass_matrix_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+  mass_matrix_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+  mass_matrix_msg.layout.dim[0].label = "height";
+  mass_matrix_msg.layout.dim[0].size = model.nv;
+  mass_matrix_msg.layout.dim[0].stride = model.nv * model.nv;
+  mass_matrix_msg.layout.dim[1].label = "width";
+  mass_matrix_msg.layout.dim[1].size = model.nv;
+  mass_matrix_msg.layout.dim[1].stride = model.nv;
+  mass_matrix_msg.layout.data_offset = 0;
+  mass_matrix_msg.data = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  int count = 0;
+
   // mass matrix :
   pinocchio::crba(model, data, q);
   for(Eigen::Index row = 0; row < model.nv; row++)
@@ -71,6 +97,7 @@ int main(int argc, char ** argv)
       {
         data.M(row, col) = data.M(col, row);
       }
+      mass_matrix_msg.data[count++] = data.M(row, col);
     }
   }
   std::cout << "\n mass matrix = \n" << data.M << std::endl;
@@ -81,24 +108,10 @@ int main(int argc, char ** argv)
   const Eigen::VectorXd & b = pinocchio::rnea(model, data, q, v, a);
   std::cout << "\n coriolis, centrifugal, gravity = \n" << b.transpose() << std::endl;
 
-
-  // ROS :
-  ros::init(argc, argv, "pinocchio_dynamics_publisher");
-  ros::NodeHandle nh;
-
-  ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("matrix_data", 1);
-
-  ros::Rate rate(10);
-
-  // std_msgs::Float32MultiArray msg;
-  // msg.data = {1.0, 2.0, 3.0};
   while(ros::ok())
   {
-    std_msgs::Float32MultiArray msg;
-    msg.data = {1.0, 2.0};
-    pub.publish(msg);
-    // ros::spin();
-    rate.sleep();
+    mass_matrix_pub.publish(mass_matrix_msg);
+    pub_rate.sleep();
   }
   return 0;
 }

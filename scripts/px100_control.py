@@ -18,7 +18,8 @@ class RobotMotion:
 
         # init joints actual and desired angles :
         self.q = np.zeros((1, 4))[0]                # actual  angels
-        self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
+        # self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
+        self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
 
         # init tracking error vector :
         self.e = np.zeros((1, 4))[0]      # actual   error vector
@@ -101,20 +102,26 @@ class RobotMotion:
     
     
     def pid_controller(self):
+        # PID gains :
         kp = 100
         ki = 10
         kd = 20
 
+        # update now time :
         self.t_now = rospy.get_time()
 
+        # calc time step :
         dt = self.t_now - self.t_prev
 
+        # calc PID terms :
         self.e = self.q_d - self.q
         self.ie = (self.e + self.ie) * dt
         self.de = (self.e - self.e_prev) / dt
 
+        # assigning now vars to the prev vars :
         self.t_prev = self.t_now
         self.e_prev = self.e
+        
         return kp * self.e + ki * self.ie + kd * self.de
     
     # def get_body_jacobian(self):

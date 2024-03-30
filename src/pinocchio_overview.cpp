@@ -10,9 +10,9 @@
 #include <iostream>
 
 // include crba.hpp dependencies :
-#include "pinocchio/multibody/model.hpp"
-#include "pinocchio/multibody/data.hpp"
-#include "pinocchio/algorithm/check.hpp"
+// #include "pinocchio/multibody/model.hpp"
+// #include "pinocchio/multibody/data.hpp"
+// #include "pinocchio/algorithm/check.hpp"
 #include "pinocchio/algorithm/crba.hpp"
  
 // include ros necessary libraries :
@@ -23,6 +23,7 @@
 // define model URDF directory path :
 #ifndef PINOCCHIO_MODEL_DIR
   #define PINOCCHIO_MODEL_DIR "/home/ali/interbotix_ws/src/interbotix_ros_manipulators/interbotix_ros_xsarms/interbotix_xsarm_descriptions/urdf/"
+  // #define PINOCCHIO_MODEL_DIR "/opt/ros/noetic/share/urdf_tutorial/urdf/"
 #endif
 
 
@@ -39,6 +40,7 @@ int main(int argc, char ** argv)
   
   // URDF file namere  :
   const std::string urdf_filename = (argc<=1) ? PINOCCHIO_MODEL_DIR + std::string("px100_modified.urdf.xacro") : argv[1];
+  // const std::string urdf_filename = (argc<=1) ? PINOCCHIO_MODEL_DIR + std::string("07-physics.urdf") : argv[1];
 
   // load the URDF model :
   Model model;
@@ -49,13 +51,12 @@ int main(int argc, char ** argv)
   Data data(model);
   
   // // sample a random configuration :
-  Eigen::VectorXd q = pinocchio::neutral(model);
-  q(0) = 1.0;
-  q(1) = 1.5;
-  q(2) = 0.3;
-  q(3) = 0.5;
+  Eigen::VectorXd q = Eigen::VectorXd::Zero(model.nv+1);
+  q.setRandom();
   Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
+  v.setRandom();
   Eigen::VectorXd a = Eigen::VectorXd::Zero(model.nv);
+  a.setRandom();
 
 
   // print configuration :
@@ -88,7 +89,8 @@ int main(int argc, char ** argv)
   int count = 0;
 
   // mass matrix :
-  pinocchio::crba(model, data, q);
+  // pinocchio::crba(model, data, q);
+  pinocchio::computeAllTerms(model, data, q, v);
   for(Eigen::Index row = 0; row < model.nv; row++)
   {
     for(Eigen::Index col = 0; col < model.nv; col++)

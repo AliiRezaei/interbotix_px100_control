@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sym
 from math import cos, sin, sqrt
 import rospy
 from sensor_msgs.msg import JointState
@@ -134,24 +135,55 @@ class RobotMotion:
 
     # def get_gravity_vector(self):
 
+class RobotDynamics:
+    def __init__(self, robotMotion):
+        
+        self.robotMotion = robotMotion
+        
+        # robot symbolic params (joints angle and velocity) :
+        self.q1, self.q2, self.q3, self.q4 = sym.symbols('q1, q2, q3, q4', real=True)
+        self.dq1, self.dq2, self.dq3, self.dq4 = sym.symbols('dq1, dq2, dq3, dq4', real=True)
+
+        # links center of mass : (default)
+        self.Lc1 = self.robotMotion.L1 / 2
+        self.Lc2 = self.robotMotion.L2 / 2
+        self.Lc3 = self.robotMotion.L3 / 2
+        self.Lc4 = self.robotMotion.L4 / 2
+
+    def get_com_jacobian(self, no_com):
+        # no_com --> witch one of links? (number of link) 1, 2, 3 or 4
+        if no_com == 1:
+            H_com_1 = sym.Matrix(self.robotMotion.rotation_around_z(self.q1)) @ sym.Matrix(self.robotMotion.translation_about_z(self.Lc1)) @ sym.Matrix(self.robotMotion.translation_about_x(0)) @ sym.Matrix(self.robotMotion.rotation_around_x(-np.pi/2))
+            H = H_com_1
+        elif no_com == 2:
+            H_1     = self.robotMotion.rotation_around_z(self.q1) @ self.robotMotion.translation_about_z(self.robotMotion.L1) @ self.robotMotion.translation_about_x(0) @ self.robotMotion.rotation_around_x(-np.pi/2)
+            H_com_2 = self.robotMotion.rotation_around_z(self.q2) @ self.robotMotion.translation_about_z(0) @ self.robotMotion.translation_about_x(self.Lc2) @ self.robotMotion.rotation_around_x(0)
+            H = H_1 @ H_com_2
+        else :
+            print('Something Wrong!')
+        print(H)
 
     
 def main():
     robot = RobotMotion()
-    while not rospy.is_shutdown():
-        # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
+    robotDynamics = RobotDynamics(robot)
+    robotDynamics.get_com_jacobian(1)
 
-        # H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
 
-        # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
+    # while not rospy.is_shutdown():
+    #     # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
+
+    #     # H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
+
+    #     # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
         
 
-        u = robot.pid_controller()
-        robot.ctrl_cmd.name = "arm"
-        robot.ctrl_cmd.cmd = u
-        robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
-        rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
-        rospy.loginfo("Control Signals : \n" + str(u) + "\n")
+    #     u = robot.pid_controller()
+    #     robot.ctrl_cmd.name = "arm"
+    #     robot.ctrl_cmd.cmd = u
+    #     robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
+    #     rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
+    #     rospy.loginfo("Control Signals : \n" + str(u) + "\n")
 
 if __name__ == '__main__':
     main()

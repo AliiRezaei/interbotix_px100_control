@@ -63,11 +63,17 @@ class RobotMotion:
     
 
     # Rotation Matrices :
-    def rotation_around_x(self, theta):
-        return np.matrix([[1,        0,            0,             0],
-                          [0,   cos(theta),   -sin(theta),        0],
-                          [0,   sin(theta),    cos(theta),        0],
-                          [0,        0,            0,             1]])
+    def rotation_around_x(self, theta, out_type = 'np'):
+        if out_type == 'np':
+            return np.matrix([[1,         0,                0,              0],
+                              [0,   np.cos(theta),   -np.sin(theta),        0],
+                              [0,   np.sin(theta),    np.cos(theta),        0],
+                              [0,         0,                0,              1]])
+        elif out_type == 'sym':
+            return sym.Matrix([[1,          0,                0,               0],
+                               [0,   sym.cos(theta),   -sym.sin(theta),        0],
+                               [0,   sym.sin(theta),    sym.cos(theta),        0],
+                               [0,          0,                0,               1]])
     
     def rotation_around_y(self, theta):
         return np.matrix([[cos(theta),    0,   sin(theta),   0],

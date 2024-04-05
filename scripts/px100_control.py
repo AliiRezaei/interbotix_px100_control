@@ -1,6 +1,5 @@
 import numpy as np
 import sympy as sym
-from math import cos, sin, sqrt
 import rospy
 from sensor_msgs.msg import JointState
 from interbotix_xs_msgs.msg import JointGroupCommand
@@ -15,7 +14,7 @@ class RobotMotion:
         self.Lm = 0.035 
         self.L3 = 0.1
         self.L4 = 0.08605
-        self.Lr = sqrt(self.L2**2 + self.Lm**2)
+        self.Lr = np.sqrt(self.L2**2 + self.Lm**2)
 
         # init joints actual and desired angles :
         self.q = np.zeros((1, 4))[0]                # actual  angels
@@ -191,7 +190,7 @@ class RobotDynamics:
     def get_com_jacobian(self, no_com):
         # no_com --> witch one of links? (number of link) 1, 2, 3 or 4
         if no_com == 1:
-            H_com_1 = sym.Matrix(self.robotMotion.rotation_around_z(self.q1)) @ sym.Matrix(self.robotMotion.translation_about_z(self.Lc1)) @ sym.Matrix(self.robotMotion.translation_about_x(0)) @ sym.Matrix(self.robotMotion.rotation_around_x(-np.pi/2))
+            H_com_1 = self.robotMotion.rotation_around_z(self.q1, 'sym') @ self.robotMotion.translation_about_z(self.Lc1, 'sym') @ self.robotMotion.translation_about_x(0, 'sym') @ self.robotMotion.rotation_around_x(-np.pi/2, 'sym')
             H = H_com_1
         elif no_com == 2:
             H_1     = self.robotMotion.rotation_around_z(self.q1) @ self.robotMotion.translation_about_z(self.robotMotion.L1) @ self.robotMotion.translation_about_x(0) @ self.robotMotion.rotation_around_x(-np.pi/2)
@@ -205,10 +204,10 @@ class RobotDynamics:
 def main():
     robot = RobotMotion()
     robotDynamics = RobotDynamics(robot)
-    # robotDynamics.get_com_jacobian(1)
+    robotDynamics.get_com_jacobian(1)
     # tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
     # print(tmp@tmp)
-    tmp = robot.translation_about_x(10, out_type = 'sym')
+    tmp = robot.translation_about_x(10, 'sym')
     print(tmp)
 
 

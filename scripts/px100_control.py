@@ -188,8 +188,10 @@ def main():
     robot = RobotMotion()
     robotDynamics = RobotDynamics(robot)
     # robotDynamics.get_com_jacobian(1)
-    tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
-    print(tmp@tmp)
+    # tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
+    # print(tmp@tmp)
+    tmp = robot.translation_about_x(10, out_type = 'sym')
+    print(tmp)
 
 
     # while not rospy.is_shutdown():

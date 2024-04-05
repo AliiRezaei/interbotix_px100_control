@@ -83,11 +83,19 @@ class RobotMotion:
     
 
     # Translation Matrices :
-    def translation_about_x(self, x):
-        return np.matrix([[1,   0,   0,   x],
-                          [0,   1,   0,   0],
-                          [0,   0,   1,   0],
-                          [0,   0,   0,   1]])
+    def translation_about_x(self, x, out_type = 'np'):
+        if out_type == 'np':
+            return np.matrix([[1,   0,   0,   x],
+                              [0,   1,   0,   0],
+                              [0,   0,   1,   0],
+                              [0,   0,   0,   1]])
+        elif out_type == 'sym':
+            return sym.Matrix([[1,   0,   0,   x],
+                               [0,   1,   0,   0],
+                               [0,   0,   1,   0],
+                               [0,   0,   0,   1]])
+        else :
+            print('output type error (use np or sym)')
     
     def translation_about_y(self, y):
         return np.matrix([[1,   0,   0,   0],
@@ -167,7 +175,9 @@ class RobotDynamics:
 def main():
     robot = RobotMotion()
     robotDynamics = RobotDynamics(robot)
-    robotDynamics.get_com_jacobian(1)
+    # robotDynamics.get_com_jacobian(1)
+    tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
+    print(tmp@tmp)
 
 
     # while not rospy.is_shutdown():

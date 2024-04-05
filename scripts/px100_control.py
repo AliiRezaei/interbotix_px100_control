@@ -97,17 +97,29 @@ class RobotMotion:
         else :
             print('output type error (use np or sym)')
     
-    def translation_about_y(self, y):
-        return np.matrix([[1,   0,   0,   0],
-                          [0,   1,   0,   y],
-                          [0,   0,   1,   0],
-                          [0,   0,   0,   1]])
+    def translation_about_y(self, y, out_type = 'np'):
+        if out_type == 'np':
+            return np.matrix([[1,   0,   0,   0],
+                              [0,   1,   0,   y],
+                              [0,   0,   1,   0],
+                              [0,   0,   0,   1]])
+        elif out_type == 'sym':
+            return sym.Matrix([[1,   0,   0,   0],
+                               [0,   1,   0,   y],
+                               [0,   0,   1,   0],
+                               [0,   0,   0,   1]])
     
-    def translation_about_z(self, z):
-        return np.matrix([[1,   0,   0,   0],
-                          [0,   1,   0,   0],
-                          [0,   0,   1,   z],
-                          [0,   0,   0,   1]])
+    def translation_about_z(self, z, out_type = 'np'):
+        if out_type == 'np':
+            return np.matrix([[1,   0,   0,   0],
+                              [0,   1,   0,   0],
+                              [0,   0,   1,   z],
+                              [0,   0,   0,   1]])
+        elif out_type == 'sym':
+            return sym.Matrix([[1,   0,   0,   0],
+                               [0,   1,   0,   0],
+                               [0,   0,   1,   z],
+                               [0,   0,   0,   1]])
     
     
     def pid_controller(self):

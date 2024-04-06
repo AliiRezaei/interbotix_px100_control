@@ -209,7 +209,16 @@ class RobotDynamics:
             H = H_1 @ H_2 @ H_3 @ H_com_4
         else :
             print('Something Wrong!')
-        print(H)
+        return H
+
+    def get_body_jacobian(self):
+        H_1 = self.robotMotion.rotation_around_z(self.q1, 'sym') @ self.robotMotion.translation_about_z(self.robotMotion.L1, 'sym') @ self.robotMotion.translation_about_x(0, 'sym') @ self.robotMotion.rotation_around_x(-np.pi/2, 'sym')
+        H_2 = self.robotMotion.rotation_around_z(self.q2, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.robotMotion.L2, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
+        H_3 = self.robotMotion.rotation_around_z(self.q3, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.robotMotion.L3, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
+        H_4 = self.robotMotion.rotation_around_z(self.q4, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.robotMotion.L4, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
+        H = H_1 @ H_2 @ H_3 @ H_4
+        return H
+
 
     
 def main():

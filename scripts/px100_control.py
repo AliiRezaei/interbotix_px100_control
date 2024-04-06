@@ -192,21 +192,25 @@ class RobotDynamics:
         if no_com == 1:
             H_com_1 = self.robotMotion.rotation_around_z(self.q1, 'sym') @ self.robotMotion.translation_about_z(self.Lc1, 'sym') @ self.robotMotion.translation_about_x(0, 'sym') @ self.robotMotion.rotation_around_x(-np.pi/2, 'sym')
             H = sym.simplify(H_com_1)
+            R = H[:3, :3]
         elif no_com == 2:
             H_1     = self.robotMotion.rotation_around_z(self.q1, 'sym') @ self.robotMotion.translation_about_z(self.robotMotion.L1, 'sym') @ self.robotMotion.translation_about_x(0, 'sym') @ self.robotMotion.rotation_around_x(-np.pi/2, 'sym')
             H_com_2 = self.robotMotion.rotation_around_z(self.q2, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.Lc2, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
             H = sym.simplify(H_1 @ H_com_2)
+            R = H[:3, :3]
         elif no_com == 3:
             H_1     = self.robotMotion.rotation_around_z(self.q1, 'sym') @ self.robotMotion.translation_about_z(self.robotMotion.L1, 'sym') @ self.robotMotion.translation_about_x(0, 'sym') @ self.robotMotion.rotation_around_x(-np.pi/2, 'sym')
             H_2     = self.robotMotion.rotation_around_z(self.q2, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.robotMotion.L2, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
             H_com_3 = self.robotMotion.rotation_around_z(self.q3, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.Lc3, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
             H = sym.simplify(H_1 @ H_2 @ H_com_3)
+            R = H[:3, :3]
         elif no_com == 4:
             H_1     = self.robotMotion.rotation_around_z(self.q1, 'sym') @ self.robotMotion.translation_about_z(self.robotMotion.L1, 'sym') @ self.robotMotion.translation_about_x(0, 'sym') @ self.robotMotion.rotation_around_x(-np.pi/2, 'sym')
             H_2     = self.robotMotion.rotation_around_z(self.q2, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.robotMotion.L2, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
             H_3     = self.robotMotion.rotation_around_z(self.q3, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.robotMotion.L3, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
             H_com_4 = self.robotMotion.rotation_around_z(self.q4, 'sym') @ self.robotMotion.translation_about_z(0, 'sym') @ self.robotMotion.translation_about_x(self.Lc4, 'sym') @ self.robotMotion.rotation_around_x(0, 'sym')
             H = sym.simplify(H_1 @ H_2 @ H_3 @ H_com_4)
+            R = H[:3, :3]
         else :
             print('Something Wrong!')
 

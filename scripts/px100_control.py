@@ -19,8 +19,8 @@ class RobotMotion:
 
         # init joints actual and desired angles :
         self.q = np.zeros((1, 4))[0]                # actual  angels
-        self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
-        # self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
+        # self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
+        self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
 
         # init tracking error vector :
         self.e = np.zeros((1, 4))[0]      # actual   error vector
@@ -243,6 +243,7 @@ class RobotDynamics:
     
 def main():
     robot = RobotMotion()
+    rate = rospy.Rate(50)
     # robotDynamics = RobotDynamics(robot)
     # robotDynamics.get_com_jacobian(4)
     # tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
@@ -263,8 +264,9 @@ def main():
         robot.ctrl_cmd.name = "arm"
         robot.ctrl_cmd.cmd = u
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
-        rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
+        # rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
         rospy.loginfo("Control Signals : \n" + str(u) + "\n")
+        # rate.sleep()
 
 if __name__ == '__main__':
     main()

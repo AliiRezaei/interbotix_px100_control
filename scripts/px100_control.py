@@ -2,6 +2,7 @@ import numpy as np
 import sympy as sym
 import rospy
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Float32MultiArray
 from interbotix_xs_msgs.msg import JointGroupCommand
 
 
@@ -18,8 +19,8 @@ class RobotMotion:
 
         # init joints actual and desired angles :
         self.q = np.zeros((1, 4))[0]                # actual  angels
-        # self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
-        self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
+        self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
+        # self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
 
         # init tracking error vector :
         self.e = np.zeros((1, 4))[0]      # actual   error vector
@@ -40,6 +41,9 @@ class RobotMotion:
         # subscribe "px100/joint_states" for update actual joints angels :
         rospy.Subscriber("px100/joint_states", JointState, self.joint_states_callback)
 
+        # subscribe "px100/desired_joint_states" for update desired joints angels :
+        rospy.Subscriber("px100/desired_joint_states", Float32MultiArray, self.desired_joint_states_callback)
+
         # init now time and previous time (used in controller):
         self.t_now  = rospy.get_time() # time --> now
         self.t_prev = rospy.get_time() # time --> previous (last step)
@@ -47,6 +51,10 @@ class RobotMotion:
     def joint_states_callback(self, msg):
         # update joints angle :
         self.q = np.array(msg.position[:4])
+
+    def desired_joint_states_callback(self, msg):
+        # update desired joints angle :
+        self.q_d = np.array(msg.data)
    
 
     def get_homogeneous_transformation(self):
@@ -235,28 +243,28 @@ class RobotDynamics:
     
 def main():
     robot = RobotMotion()
-    robotDynamics = RobotDynamics(robot)
-    robotDynamics.get_com_jacobian(4)
+    # robotDynamics = RobotDynamics(robot)
+    # robotDynamics.get_com_jacobian(4)
     # tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
     # print(tmp@tmp)
     # tmp = robot.translation_about_x(10, 'sym')
     # print(tmp)
 
 
-    # while not rospy.is_shutdown():
-    #     # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
+    while not rospy.is_shutdown():
+        # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
 
-    #     # H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
+        # H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
 
-    #     # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
+        # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
         
 
-    #     u = robot.pid_controller()
-    #     robot.ctrl_cmd.name = "arm"
-    #     robot.ctrl_cmd.cmd = u
-    #     robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
-    #     rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
-    #     rospy.loginfo("Control Signals : \n" + str(u) + "\n")
+        u = robot.pid_controller()
+        robot.ctrl_cmd.name = "arm"
+        robot.ctrl_cmd.cmd = u
+        robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
+        rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
+        rospy.loginfo("Control Signals : \n" + str(u) + "\n")
 
 if __name__ == '__main__':
     main()

@@ -2,19 +2,11 @@
     "python.autoComplete.extraPaths": [
         "/home/ali/interbotix_ws/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages",
-        "/opt/openrobots/lib/python3.8.10/site-packages",
+        "/opt/openrobots/lib/python3.8.10/site-packages"
     ],
     "python.analysis.extraPaths": [
         "/home/ali/interbotix_ws/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages",
-        "/opt/openrobots/lib/python3.8.10/site-packages",
-    ],
-    "files.associations": {
-        "array": "cpp",
-        "string": "cpp",
-        "string_view": "cpp",
-        "alignedvector3": "cpp",
-        "iostream": "cpp",
-        "ostream": "cpp"
-    }
+        "/opt/openrobots/lib/python3.8.10/site-packages"
+    ]
 }

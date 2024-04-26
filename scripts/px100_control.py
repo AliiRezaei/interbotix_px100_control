@@ -1,10 +1,11 @@
 import numpy as np
 import sympy as sym
+import re
 import rospy
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float32MultiArray
 from interbotix_xs_msgs.msg import JointGroupCommand
-
+import time
 
 class RobotMotion:
     def __init__(self):
@@ -21,6 +22,10 @@ class RobotMotion:
         self.q = np.zeros((1, 4))[0]                # actual  angels
         # self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
         self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
+
+        # init joints actual and desired velocities :
+        self.dq = np.zeros((1, 4))[0]                # actual  velocities
+        self.dq_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired velocities
 
         # init tracking error vector :
         self.e = np.zeros((1, 4))[0]      # actual   error vector
@@ -51,9 +56,10 @@ class RobotMotion:
     def joint_states_callback(self, msg):
         # update joints angle :
         self.q = np.array(msg.position[:4])
+        # self.dq = np.array(msg.velocity[:4])
 
     def desired_joint_states_callback(self, msg):
-        # update desired joints angle :
+        # update desired joints angle and :
         self.q_d = np.array(msg.data)
    
 
@@ -168,8 +174,72 @@ class RobotMotion:
         self.t_prev = self.t_now
         self.e_prev = self.e
         
-        return kp * self.e + ki * self.ie + kd * self.de
+        u = kp * self.e + ki * self.ie + kd * self.de
+
+        # maxU = 10
+        # for i in range(0, len(u)):
+        #     if abs(u[i]) > maxU:
+        #         u[i] = np.sign(u[i]) * maxU
+        
+        return u
     
+    def Regressor(self, q, dq, ddq):
+        # Read the content of the text file
+        with open('rne_dynamics/test_dynamics.txt', 'r') as file:
+            content = file.read()
+
+        # Extract the matrix expression from the content using regex
+        matrix_expression = re.search(r'Y = np\.matrix\((.+)\)', content).group(1)
+
+
+        # Define the vector q dq ddq
+        q = q
+        dq = dq
+        ddq = ddq
+
+
+        # Evaluate the matrix expression to get the numpy matrix
+        Y = np.matrix(eval(matrix_expression))
+        # print(Y)
+        return Y
+
+    
+
+    def adaptive_controller(self, theta_hat):
+        q_tilde  = self.q  - self.q_d
+        dq_tilde = self.dq - self.dq_d
+        ddq = np.zeros((1, 4))[0]
+        Lambda = 20.0 * np.eye(4)
+        Kd     = 50.0 * np.eye(4)
+        Gamma  = 0.1 * np.eye(48)
+
+        # theta_hat = np.transpose(theta_hat)
+
+        # s = dq_tilde + Lambda @ q_tilde
+        s = dq_tilde + Lambda @ q_tilde
+        Y = self.Regressor(self.q, self.dq, ddq)
+        
+        
+        dtheta_hat = - Gamma * np.transpose(Y) @ s
+        # print(dtheta_hat)
+        # update now time :
+        self.t_now = rospy.get_time()
+
+        # calc time step :
+        dt = self.t_now - self.t_prev
+
+        theta_hat = dtheta_hat * dt + theta_hat
+        # print(theta_hat)
+        
+        # assigning now vars to the prev vars :
+        self.t_prev = self.t_now
+    
+        u = Y @ np.transpose(theta_hat) - np.transpose(Kd @ s)[0]
+        # print(Y @ np.transpose(theta_hat) - np.transpose(Kd @ s)[0])
+        # print(theta_hat.shape)
+        
+        return u, theta_hat
+
     # def get_body_jacobian(self):
 
     # def get_com_jacobian(self):
@@ -186,14 +256,16 @@ class RobotDynamics:
         self.robotMotion = robotMotion
         
         # robot symbolic params (joints angle and velocity) :
-        self.q1, self.q2, self.q3, self.q4 = sym.symbols('q1, q2, q3, q4', real=True)
-        self.dq1, self.dq2, self.dq3, self.dq4 = sym.symbols('dq1, dq2, dq3, dq4', real=True)
+        # self.q1, self.q2, self.q3, self.q4 = sym.symbols('q1, q2, q3, q4', real=True)
+        # self.dq1, self.dq2, self.dq3, self.dq4 = sym.symbols('dq1, dq2, dq3, dq4', real=True)
 
         # links center of mass : (default)
         self.Lc1 = self.robotMotion.L1 / 2
         self.Lc2 = self.robotMotion.L2 / 2
         self.Lc3 = self.robotMotion.L3 / 2
         self.Lc4 = self.robotMotion.L4 / 2
+
+
 
     def get_com_jacobian(self, no_com):
         # no_com --> witch one of links? (number of link) 1, 2, 3 or 4
@@ -243,7 +315,6 @@ class RobotDynamics:
     
 def main():
     robot = RobotMotion()
-    rate = rospy.Rate(50)
     # robotDynamics = RobotDynamics(robot)
     # robotDynamics.get_com_jacobian(4)
     # tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
@@ -252,6 +323,10 @@ def main():
     # print(tmp)
 
 
+    theta_hat = np.transpose(np.ones((1, 48))[0])
+
+    start_time = rospy.get_time()
+
     while not rospy.is_shutdown():
         # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
 
@@ -259,8 +334,11 @@ def main():
 
         # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
         
-
-        u = robot.pid_controller()
+        if rospy.get_time() - start_time < 10.0:
+            u = robot.pid_controller()
+        # print(rospy.Time.now())
+        else:
+            u, theta_hat = robot.adaptive_controller(theta_hat)
         robot.ctrl_cmd.name = "arm"
         robot.ctrl_cmd.cmd = u
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)

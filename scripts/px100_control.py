@@ -5,7 +5,6 @@ import rospy
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float32MultiArray
 from interbotix_xs_msgs.msg import JointGroupCommand
-import time
 
 class RobotMotion:
     def __init__(self):
@@ -19,22 +18,24 @@ class RobotMotion:
         self.Lr = np.sqrt(self.L2**2 + self.Lm**2)
 
         # init joints actual and desired angles :
-        self.q = np.zeros((1, 4))[0]                # actual  angels
+        self.q = np.zeros((4, 1))                # actual  angels
         # self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
-        self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
+        # self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
+        self.q_d = np.zeros((4, 1)) # desired angels
+        self.q_prev = np.zeros((4, 1)) # previous joints angle
 
         # init joints actual and desired velocities :
-        self.dq = np.zeros((1, 4))[0]                # actual  velocities
-        self.dq_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired velocities
+        self.dq = np.zeros((4, 1))               # actual  velocities
+        # self.dq_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired velocities
+        self.dq_d = np.zeros((4, 1)) # desired velocities
 
         # init tracking error vector :
-        self.e = np.zeros((1, 4))[0]      # actual   error vector
-        self.e_prev = np.zeros((1, 4))[0] # previous error vector
+        self.e = np.zeros((4, 1))      # actual   error vector
+        self.e_prev = np.zeros((4, 1)) # previous error vector
 
         # integral and derivative of error vector :
-        self.ie = np.zeros((1, 4))[0]  # integral   error vector
-        self.de = np.zeros((1, 4))[0]  # derivative error vector
-
+        self.ie = np.zeros((4, 1))  # integral   error vector
+        self.de = np.zeros((4, 1))  # derivative erro4 v1ct
         # declare control command type and its publisher :
         self.ctrl_cmd = JointGroupCommand()
         self.ctrl_cmd_pub = rospy.Publisher("px100/commands/joint_group", JointGroupCommand, queue_size=1)
@@ -55,12 +56,12 @@ class RobotMotion:
 
     def joint_states_callback(self, msg):
         # update joints angle :
-        self.q = np.array(msg.position[:4])
+        self.q[:, 0] = np.array(msg.position[:4])
         # self.dq = np.array(msg.velocity[:4])
 
     def desired_joint_states_callback(self, msg):
         # update desired joints angle and :
-        self.q_d = np.array(msg.data)
+        self.q_d[:, 0] = np.array(msg.data)
    
 
     def get_homogeneous_transformation(self):
@@ -193,62 +194,72 @@ class RobotMotion:
 
 
         # Define the vector q dq ddq
-        q = q
-        dq = dq
+        q   = q
+        dq  = dq
         ddq = ddq
 
 
         # Evaluate the matrix expression to get the numpy matrix
         Y = np.matrix(eval(matrix_expression))
-        # print(Y)
+
         return Y
 
     
 
     def adaptive_controller(self, theta_hat):
-        q_tilde  = self.q  - self.q_d
-        dq_tilde = self.dq - self.dq_d
-        ddq = np.zeros((1, 4))[0]
-        Lambda = 20.0 * np.eye(4)
-        Kd     = 50.0 * np.eye(4)
-        Gamma  = 0.1 * np.eye(48)
-
-        # theta_hat = np.transpose(theta_hat)
-
-        # s = dq_tilde + Lambda @ q_tilde
-        s = dq_tilde + Lambda @ q_tilde
-        Y = self.Regressor(self.q, self.dq, ddq)
         
-        
-        dtheta_hat = - Gamma * np.transpose(Y) @ s
-        # print(dtheta_hat)
-        # update now time :
+        ddq = np.zeros((4, 1))
+        Lambda = 30.0 * np.eye(4)
+        Kd     = 12.0 * np.eye(4)
+        Gamma  = 0.05 * np.eye(48)
+
+        # extract robot states :
+        q = self.q
+        dq = self.dq
+
         self.t_now = rospy.get_time()
 
         # calc time step :
         dt = self.t_now - self.t_prev
 
+        # self.dq = (q  - self.q_prev) / dt
+        q_tilde  = q  - self.q_d
+        dq_tilde = dq - self.dq_d
+
+
+        # s = dq_tilde + Lambda @ q_tilde
+        s = dq_tilde + Lambda @ q_tilde
+        Y = self.Regressor(q, dq, ddq)
+        
+        
+        dtheta_hat = - Gamma @ np.transpose(Y) @ s
+        # print(self.dq)
+        # print(q)
+        # print(self.q_prev)
+        # print(dt)
+        # print(dtheta_hat)
+        # update now time :
+        
         theta_hat = dtheta_hat * dt + theta_hat
         # print(theta_hat)
         
         # assigning now vars to the prev vars :
         self.t_prev = self.t_now
+        self.q_prev = q
     
-        u = Y @ np.transpose(theta_hat) - np.transpose(Kd @ s)[0]
+        u = Y @ theta_hat - Kd @ s
         # print(Y @ np.transpose(theta_hat) - np.transpose(Kd @ s)[0])
         # print(theta_hat.shape)
+
+        maxU = 10
+        for i in range(0, len(u)):
+            if abs(u[i]) > maxU:
+                u[i] = np.sign(u[i]) * maxU
         
         return u, theta_hat
 
-    # def get_body_jacobian(self):
 
-    # def get_com_jacobian(self):
 
-    # def get_mass_matrix(self):
-
-    # def get_coriolis_accel(self):
-
-    # def get_gravity_vector(self):
 
 class RobotDynamics:
     def __init__(self, robotMotion):
@@ -323,9 +334,11 @@ def main():
     # print(tmp)
 
 
-    theta_hat = np.transpose(np.ones((1, 48))[0])
+    # theta_hat = np.transpose(np.ones((1, 48))[0])
+    theta_hat = np.ones((48, 1))
 
     start_time = rospy.get_time()
+
 
     while not rospy.is_shutdown():
         # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
@@ -334,11 +347,15 @@ def main():
 
         # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
         
-        if rospy.get_time() - start_time < 10.0:
-            u = robot.pid_controller()
-        # print(rospy.Time.now())
-        else:
-            u, theta_hat = robot.adaptive_controller(theta_hat)
+        # if rospy.get_time() - start_time < 1.0:
+        #     u = robot.pid_controller()
+        # # print(rospy.Time.now())
+        # else:
+        #     u, theta_hat = robot.adaptive_controller(theta_hat)
+        
+        
+        # u = robot.pid_controller()
+        u, theta_hat = robot.adaptive_controller(theta_hat)
         robot.ctrl_cmd.name = "arm"
         robot.ctrl_cmd.cmd = u
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)

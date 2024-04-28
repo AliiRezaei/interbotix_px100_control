@@ -206,8 +206,10 @@ class RobotMotion:
     
 
     def adaptive_controller(self, theta_hat):
-        
+        # joints acceleration :
         ddq = np.zeros((4, 1))
+
+        # controller params :
         Lambda = 30.0 * np.eye(4)
         Kd     = 12.0 * np.eye(4)
         Gamma  = 0.05 * np.eye(48)
@@ -216,39 +218,38 @@ class RobotMotion:
         q = self.q
         dq = self.dq
 
+        # get current time :
         self.t_now = rospy.get_time()
 
         # calc time step :
         dt = self.t_now - self.t_prev
 
+        # joints velocity :
         self.dq = (q  - self.q_prev) / dt
+        
+        # pos and vel errors :
         q_tilde  = q  - self.q_d
         dq_tilde = dq - self.dq_d
 
-
+        # calc regressor true val :
         s = dq_tilde + Lambda @ q_tilde
         Y = self.Regressor(q, dq, ddq)
         
-        
+        # adaptation law :
         dtheta_hat = - Gamma @ np.transpose(Y) @ s
-        # print(self.dq)
-        print(dq_tilde)
-        # print(self.q_prev)
-        # print(dt)
-        # print(dtheta_hat)
-        # update now time :
         
-        theta_hat = dtheta_hat * dt + theta_hat
-        # print(theta_hat)
+        # calc numerical integral of adaptation law :
+        theta_hat = dtheta_hat * dt + theta_hat 
         
-        # assigning now vars to the prev vars :
+        # assigning current vars to the prev vars :
         self.t_prev = self.t_now
         self.q_prev = q
     
+        # control law :
         u = Y @ theta_hat - Kd @ s
-        # print(Y @ np.transpose(theta_hat) - np.transpose(Kd @ s)[0])
-        # print(theta_hat.shape)
 
+        # applying control signal constraints : 
+        # assumption : - maxU <= u <= + maxU
         maxU = 100
         for i in range(0, len(u)):
             if abs(u[i]) > maxU:
@@ -323,43 +324,21 @@ class RobotDynamics:
 
     
 def main():
+    # RobotMotion object :
     robot = RobotMotion()
-    # robotDynamics = RobotDynamics(robot)
-    # robotDynamics.get_com_jacobian(4)
-    # tmp = sym.Matrix(robotDynamics.robotMotion.translation_about_z(robotDynamics.Lc1))
-    # print(tmp@tmp)
-    # tmp = robot.translation_about_x(10, 'sym')
-    # print(tmp)
 
-
-    # theta_hat = np.transpose(np.ones((1, 48))[0])
+    # initial estimation :
     theta_hat = np.ones((48, 1))
-
-    start_time = rospy.get_time()
-
-
-    while not rospy.is_shutdown():
-        # H_shoulder_to_waist, H_elbow_to_shoulder, H_wrist_to_elbow, H_gripper_to_wrist = robot.get_homogeneous_transformation()
-
-        # H_gripper_to_waist = H_shoulder_to_waist @ H_elbow_to_shoulder @ H_wrist_to_elbow @ H_gripper_to_wrist
-
-        # print("\n Homogen Matrix from gripper to waist is : \n", H_gripper_to_waist)
-        
-        # if rospy.get_time() - start_time < 1.0:
-        #     u = robot.pid_controller()
-        # # print(rospy.Time.now())
-        # else:
-        #     u, theta_hat = robot.adaptive_controller(theta_hat)
-        
-        
-        # u = robot.pid_controller()
-        u, theta_hat = robot.adaptive_controller(theta_hat)
+    
+    # control loop :
+    while not rospy.is_shutdown():    
+        # ctrl_signal = robot.pid_controller()
+        ctrl_signal, theta_hat = robot.adaptive_controller(theta_hat)
         robot.ctrl_cmd.name = "arm"
-        robot.ctrl_cmd.cmd = u
+        robot.ctrl_cmd.cmd = ctrl_signal
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
         # rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
         # rospy.loginfo("Control Signals : \n" + str(u) + "\n")
-        # rate.sleep()
 
 if __name__ == '__main__':
     main()

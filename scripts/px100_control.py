@@ -211,7 +211,7 @@ class RobotMotion:
 
         # controller params :
         Lambda = 30.0 * np.eye(4)
-        Kd     = 12.0 * np.eye(4)
+        Kd     = 15.0 * np.eye(4)
         Gamma  = 0.05 * np.eye(48)
 
         # extract robot states :
@@ -338,7 +338,7 @@ def main():
         robot.ctrl_cmd.cmd = ctrl_signal
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
         # rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
-        # rospy.loginfo("Control Signals : \n" + str(u) + "\n")
+        rospy.loginfo("Control Signals : \n" + str(ctrl_signal) + "\n")
 
 if __name__ == '__main__':
     main()

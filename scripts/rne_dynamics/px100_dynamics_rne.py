@@ -76,15 +76,14 @@ I_shoulder = I_shoulder_link + I_upper_arm_link
 m_elbow = m_upper_arm_link + m_forearm_link
 I_elbow = I_upper_arm_link + I_forearm_link
 
-# m_wrist_angle = m_forearm_link + m_gripper_link
-# I_wrist_angle = I_forearm_link + I_gripper_link
-
-
 m_payload = m_ee_arm_link + m_gripper_prop_link + m_gripper_bar_link + m_fingers_link + m_left_finger_link + m_right_finger_link + m_ee_gripper_link
 I_payload = I_ee_arm_link + I_gripper_prop_link + I_gripper_bar_link + I_fingers_link + I_left_finger_link + I_right_finger_link + I_ee_gripper_link
 
-m_wrist_angle = m_forearm_link + m_gripper_link + m_payload
-I_wrist_angle = I_forearm_link + I_gripper_link + I_payload
+m_wrist_angle = m_forearm_link + m_gripper_link
+I_wrist_angle = I_forearm_link + I_gripper_link
+
+# m_wrist_angle = m_forearm_link + m_gripper_link + m_payload
+# I_wrist_angle = I_forearm_link + I_gripper_link + I_payload
 
 
 

@@ -186,21 +186,19 @@ class RobotMotion:
         return u
     
     def Regressor(self, q, dq, ddq):
-        # Read the content of the text file
+        # read the content of the text file (where regressor matrix saved):
         with open('rne_dynamics/test_dynamics.txt', 'r') as file:
             content = file.read()
 
-        # Extract the matrix expression from the content using regex
+        # extract the matrix expression from the content using re :
         matrix_expression = re.search(r'Y = np\.matrix\((.+)\)', content).group(1)
 
-
-        # Define the vector q dq ddq
+        # define the vector q dq ddq
         q   = q
         dq  = dq
         ddq = ddq
 
-
-        # Evaluate the matrix expression to get the numpy matrix
+        # evaluate the matrix expression to get the numpy matrix
         Y = np.matrix(eval(matrix_expression))
 
         return Y

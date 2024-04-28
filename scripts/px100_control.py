@@ -18,40 +18,38 @@ class RobotMotion:
         self.Lr = np.sqrt(self.L2**2 + self.Lm**2)
 
         # init joints actual and desired angles :
-        self.q = np.zeros((4, 1))                # actual  angels
-        # self.q_d = np.array([1.0, 0.0, -0.1, -0.2]) # desired angels
-        # self.q_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired angels
-        self.q_d = np.zeros((4, 1)) # desired angels
+        self.q = np.zeros((4, 1))      # actual  angels
+        self.q_d = np.zeros((4, 1))    # desired angels
         self.q_prev = np.zeros((4, 1)) # previous joints angle
 
         # init joints actual and desired velocities :
-        self.dq = np.zeros((4, 1))               # actual  velocities
-        # self.dq_d = np.array([0.0, 0.0, 0.0, 0.0]) # desired velocities
-        self.dq_d = np.zeros((4, 1)) # desired velocities
+        self.dq = np.zeros((4, 1))     # actual  velocities
+        self.dq_d = np.zeros((4, 1))   # desired velocities
 
         # init tracking error vector :
         self.e = np.zeros((4, 1))      # actual   error vector
         self.e_prev = np.zeros((4, 1)) # previous error vector
 
         # integral and derivative of error vector :
-        self.ie = np.zeros((4, 1))  # integral   error vector
-        self.de = np.zeros((4, 1))  # derivative erro4 v1ct
-        # declare control command type and its publisher :
+        self.ie = np.zeros((4, 1))     # integral   error vector
+        self.de = np.zeros((4, 1))     # derivative erro4 v1ct
+        
+        # declare control command type and It's publisher :
         self.ctrl_cmd = JointGroupCommand()
         self.ctrl_cmd_pub = rospy.Publisher("px100/commands/joint_group", JointGroupCommand, queue_size=1)
 
         # init node :
-        node_name = "motion_info_publisher"
+        node_name = "px100_control_node"
         rospy.init_node(node_name, anonymous=True)
 
         # subscribe "px100/joint_states" for update actual joints angels :
         rospy.Subscriber("px100/joint_states", JointState, self.joint_states_callback)
 
         # subscribe "px100/desired_joint_states" for update desired joints angels :
-        rospy.Subscriber("px100/desired_joint_states", Float32MultiArray, self.desired_joint_states_callback)
+        rospy.Subscriber("px100/commands/desired_joint_states", Float32MultiArray, self.desired_joint_states_callback)
 
-        # init now time and previous time (used in controller):
-        self.t_now  = rospy.get_time() # time --> now
+        # init current time and previous time (used in controller):
+        self.t_now  = rospy.get_time() # time --> current
         self.t_prev = rospy.get_time() # time --> previous (last step)
 
     def joint_states_callback(self, msg):
@@ -160,7 +158,7 @@ class RobotMotion:
         ki = 10
         kd = 20
 
-        # update now time :
+        # update current time :
         self.t_now = rospy.get_time()
 
         # calc time step :
@@ -171,16 +169,19 @@ class RobotMotion:
         self.ie = (self.e + self.ie) * dt
         self.de = (self.e - self.e_prev) / dt
 
-        # assigning now vars to the prev vars :
+        # assigning current vars to the prev vars :
         self.t_prev = self.t_now
         self.e_prev = self.e
         
+        # control law :
         u = kp * self.e + ki * self.ie + kd * self.de
 
-        # maxU = 10
-        # for i in range(0, len(u)):
-        #     if abs(u[i]) > maxU:
-        #         u[i] = np.sign(u[i]) * maxU
+        # applying control signal constraints : 
+        # assumption : - maxU <= u <= + maxU
+        maxU = 100
+        for i in range(0, len(u)):
+            if abs(u[i]) > maxU:
+                u[i] = np.sign(u[i]) * maxU
         
         return u
     
@@ -222,19 +223,18 @@ class RobotMotion:
         # calc time step :
         dt = self.t_now - self.t_prev
 
-        # self.dq = (q  - self.q_prev) / dt
+        self.dq = (q  - self.q_prev) / dt
         q_tilde  = q  - self.q_d
         dq_tilde = dq - self.dq_d
 
 
-        # s = dq_tilde + Lambda @ q_tilde
         s = dq_tilde + Lambda @ q_tilde
         Y = self.Regressor(q, dq, ddq)
         
         
         dtheta_hat = - Gamma @ np.transpose(Y) @ s
         # print(self.dq)
-        # print(q)
+        print(dq_tilde)
         # print(self.q_prev)
         # print(dt)
         # print(dtheta_hat)
@@ -251,7 +251,7 @@ class RobotMotion:
         # print(Y @ np.transpose(theta_hat) - np.transpose(Kd @ s)[0])
         # print(theta_hat.shape)
 
-        maxU = 10
+        maxU = 100
         for i in range(0, len(u)):
             if abs(u[i]) > maxU:
                 u[i] = np.sign(u[i]) * maxU
@@ -360,7 +360,7 @@ def main():
         robot.ctrl_cmd.cmd = u
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
         # rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
-        rospy.loginfo("Control Signals : \n" + str(u) + "\n")
+        # rospy.loginfo("Control Signals : \n" + str(u) + "\n")
         # rate.sleep()
 
 if __name__ == '__main__':

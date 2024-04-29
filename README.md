@@ -97,7 +97,7 @@ To use the controllers, you must change the robot's operating mode from default 
 $ rosservice call /px100/set_operating_modes "{cmd_type: 'group', name: 'arm', mode: 'pwm', profile_type: 'time', profile_velocity: 131, profile_acceleration: 25}"
 ```
 
-Once you have changed the operating mode, you can use either the PID or Adaptive controllers to control the PX100 arm.
+Once you have changed the operating mode, you can use either the `PID` or `Adaptive` controllers to control the PX100 arm.
 
 ### PID Controller
 

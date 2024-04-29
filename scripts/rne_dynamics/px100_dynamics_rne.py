@@ -16,71 +16,86 @@ Lr = np.sqrt(L2**2 + Lm**2) # ...
 
 
 m_base_link_frame = 0.395887
+xyz_base_link_frame = [-0.0332053000, 0.0008915770, 0.0211913000]
+fc_base_link_frame = 0.1
 ixx=0.0010650000; iyy=0.0003332000; izz=0.0012080000; ixy=-0.0000130300; ixz=0.0000018614; iyz=0.0000409200
-I_base_link_frame = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# I_base_link_frame = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+I_base_link_frame = [ixx, ixy, ixz, iyy, iyz, izz]
 
 m_shoulder_link = 0.072587
+xyz_shoulder_link = [0.0000111169, -0.0003605640, 0.0284598000]
+fc_shoulder_link = 0.1
 ixx=0.0000231000; iyy=0.0000253500; izz=0.0000144200; ixy=0.0000000003; ixz=0.0000001606; iyz=-0.0000000206
-I_shoulder_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# I_shoulder_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+I_shoulder_link = [ixx, ixy, ixz, iyy, iyz, izz]
 
 m_upper_arm_link = 0.082923
+xyz_upper_arm_link = [0.0161976963, -0.0002929352, 0.0877230000]
+fc_upper_arm_link = 0.1
 ixx=0.0000800600; iyy=0.0000745900; izz=0.0000368500; ixy=-0.0000002144; ixz=0.0000002982; iyz=0.0000165700
-I_upper_arm_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# I_upper_arm_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+I_upper_arm_link = [ixx, ixy, ixz, iyy, iyz, izz]
 
 m_forearm_link = 0.073058
+xyz_forearm_link = [0.0773720000, -0.0003324882, 0.0000000000]
+fc_forearm_link = 0.1
 ixx=0.0000533800; iyy=0.0000165300; izz=0.0000603500; ixy=-0.0000003073; ixz=0.0000000000; iyz=0.0000000000
-I_forearm_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# I_forearm_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+I_forearm_link = [ixx, ixy, ixz, iyy, iyz, izz]
 
 m_gripper_link = 0.069929
+xyz_gripper_link = [0.0446910000, 0.0000000000, 0.0113540000]
+fc_gripper_link = 0.1
 ixx=0.0000226800; iyy=0.0000204400; izz=0.0000197400; ixy=0.0000000000; ixz=0.0000000000; iyz=0.0000008485
-I_gripper_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# I_gripper_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+I_gripper_link = [ixx, ixy, ixz, iyy, iyz, izz]
 
-m_ee_arm_link = 0.001
-ixx=0.001; iyy=0.001; izz=0.001; ixy=0; ixz=0; iyz=0
-I_ee_arm_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_ee_arm_link = 0.001
+# ixx=0.001; iyy=0.001; izz=0.001; ixy=0; ixz=0; iyz=0
+# I_ee_arm_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_gripper_prop_link = 0.00434
-ixx=0.0000005923; iyy=0.0000011156; izz=0.0000005743; ixy=0.0000000000; ixz=0.0000003195; iyz=-0.0000000004
-I_gripper_prop_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_gripper_prop_link = 0.00434
+# ixx=0.0000005923; iyy=0.0000011156; izz=0.0000005743; ixy=0.0000000000; ixz=0.0000003195; iyz=-0.0000000004
+# I_gripper_prop_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_ar_tag_link = 0.016507
-ixx=0.000003084; ixy=0; ixz=0; iyy=0.000003084; iyz=0; izz=0.000006059
-I_ar_tag_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_ar_tag_link = 0.016507
+# ixx=0.000003084; ixy=0; ixz=0; iyy=0.000003084; iyz=0; izz=0.000006059
+# I_ar_tag_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_gripper_bar_link = 0.034199
-ixx=0.0000074125; iyy=0.0000284300; izz=0.0000286000; ixy=-0.0000000008; ixz=-0.0000000006; iyz=-0.0000013889
-I_gripper_bar_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_gripper_bar_link = 0.034199
+# ixx=0.0000074125; iyy=0.0000284300; izz=0.0000286000; ixy=-0.0000000008; ixz=-0.0000000006; iyz=-0.0000013889
+# I_gripper_bar_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_fingers_link = 0.001
-ixx=0.001; iyy=0.001; izz=0.001; ixy=0; ixz=0; iyz=0
-I_fingers_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_fingers_link = 0.001
+# ixx=0.001; iyy=0.001; izz=0.001; ixy=0; ixz=0; iyz=0
+# I_fingers_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_left_finger_link = 0.016246
-ixx=0.0000047310; iyy=0.0000015506; izz=0.0000037467; ixy=-0.0000004560; ixz=0.0000000000; iyz=0.0000000000
-I_left_finger_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_left_finger_link = 0.016246
+# ixx=0.0000047310; iyy=0.0000015506; izz=0.0000037467; ixy=-0.0000004560; ixz=0.0000000000; iyz=0.0000000000
+# I_left_finger_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_right_finger_link = 0.016246
-ixx=0.0000047310; iyy=0.0000015506; izz=0.0000037467; ixy=0.0000004560; ixz=0.0000000000; iyz=0.0000000000
-I_right_finger_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_right_finger_link = 0.016246
+# ixx=0.0000047310; iyy=0.0000015506; izz=0.0000037467; ixy=0.0000004560; ixz=0.0000000000; iyz=0.0000000000
+# I_right_finger_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_ee_gripper_link = 0.001
-ixx=0.001; iyy=0.001; izz=0.001; ixy=0; ixz=0; iyz=0
-I_ee_gripper_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
+# m_ee_gripper_link = 0.001
+# ixx=0.001; iyy=0.001; izz=0.001; ixy=0; ixz=0; iyz=0
+# I_ee_gripper_link = np.matrix([[ixx, ixy, ixz],[ixy, iyy, iyz],[ixz, iyz, izz]])
 
-m_waist = m_base_link_frame + m_shoulder_link
-I_waist = I_base_link_frame + I_shoulder_link
+# m_waist = m_base_link_frame + m_shoulder_link
+# I_waist = I_base_link_frame + I_shoulder_link
 
-m_shoulder = m_shoulder_link + m_upper_arm_link
-I_shoulder = I_shoulder_link + I_upper_arm_link
+# m_shoulder = m_shoulder_link + m_upper_arm_link
+# I_shoulder = I_shoulder_link + I_upper_arm_link
 
-m_elbow = m_upper_arm_link + m_forearm_link
-I_elbow = I_upper_arm_link + I_forearm_link
+# m_elbow = m_upper_arm_link + m_forearm_link
+# I_elbow = I_upper_arm_link + I_forearm_link
 
-m_payload = m_ee_arm_link + m_gripper_prop_link + m_gripper_bar_link + m_fingers_link + m_left_finger_link + m_right_finger_link + m_ee_gripper_link
-I_payload = I_ee_arm_link + I_gripper_prop_link + I_gripper_bar_link + I_fingers_link + I_left_finger_link + I_right_finger_link + I_ee_gripper_link
+# m_payload = m_ee_arm_link + m_gripper_prop_link + m_gripper_bar_link + m_fingers_link + m_left_finger_link + m_right_finger_link + m_ee_gripper_link
+# I_payload = I_ee_arm_link + I_gripper_prop_link + I_gripper_bar_link + I_fingers_link + I_left_finger_link + I_right_finger_link + I_ee_gripper_link
 
-m_wrist_angle = m_forearm_link + m_gripper_link
-I_wrist_angle = I_forearm_link + I_gripper_link
+# m_wrist_angle = m_forearm_link + m_gripper_link
+# I_wrist_angle = I_forearm_link + I_gripper_link
 
 # m_wrist_angle = m_forearm_link + m_gripper_link + m_payload
 # I_wrist_angle = I_forearm_link + I_gripper_link + I_payload
@@ -96,13 +111,20 @@ dh = [('-pi/2',      0,    L1,    'q'),
 
 # Robot Definition :
 rbtdef = RobotDef('px100', dh, dh_convention = 'standard')
-rbtdef.frictionmodel = {'Coulomb', 'viscous'} 
+rbtdef.frictionmodel = {'Coulomb'} 
 rbtdef.gravityacc = sympy.Matrix([0.0, 0.0, -9.81])
 
 
 # Dynamics Properties of Robot :
-rbtdef.m = np.array([m_waist, m_shoulder, m_elbow, m_wrist_angle]) # links mass
-rbtdef.m = [I_waist, I_shoulder, I_elbow, I_wrist_angle] # links moment of inertia
+rbtdef.m = [m_base_link_frame, m_shoulder_link, m_upper_arm_link, m_forearm_link] # links mass
+
+rbtdef.Le = [I_base_link_frame, I_shoulder_link, I_upper_arm_link, I_forearm_link]
+
+rbtdef.l = [xyz_base_link_frame, xyz_shoulder_link, xyz_upper_arm_link, xyz_forearm_link]
+
+rbtdef.fc = [fc_base_link_frame, fc_shoulder_link, fc_upper_arm_link, fc_forearm_link]
+
+
 
 # Geometry :
 geom = Geometry(rbtdef, ifunc=None)
@@ -110,17 +132,14 @@ geom = Geometry(rbtdef, ifunc=None)
 # Regressor :
 reg = regressor(rbtdef, geom, ifunc=None)
 
-
-text_reg = open(r'test_dynamics.txt', 'w')
-str_reg = str(reg)
+# Save reg in regressor_matrix.txt :
+text_reg = open(r'regressor_matrix.txt', 'w')
 text_reg.truncate(0) # clear text file
-text_reg.write(str_reg)
+text_reg.write(str(reg))
 text_reg.close()
 
 
-print(reg.shape)
-
-file_path = 'test_dynamics.txt'
+file_path = 'regressor_matrix.txt'
 
 with open(file_path, 'r') as file:
     file_content = file.read()

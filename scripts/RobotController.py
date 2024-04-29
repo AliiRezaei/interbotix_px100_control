@@ -87,7 +87,6 @@ class RobotController:
     def Regressor(self, q, dq, ddq):
         # read the content of the text file (where regressor matrix saved):
         with open('regressor_matrix.txt', 'r') as file:
-        # with open('rne_dynamics/test_dynamics.txt', 'r') as file:
             content = file.read()
 
         # extract the matrix expression from the content using re :

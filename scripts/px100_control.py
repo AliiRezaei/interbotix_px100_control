@@ -82,10 +82,10 @@ class RobotMotion:
                               [0,   np.sin(theta),    np.cos(theta),        0],
                               [0,         0,                0,              1]])
         elif out_type == 'sym':
-            return sym.Matrix([[1,          0,                0,               0],
-                               [0,   sym.cos(theta),   -sym.sin(theta),        0],
-                               [0,   sym.sin(theta),    sym.cos(theta),        0],
-                               [0,          0,                0,               1]])
+            return sym.Matrix([[1,         0,                 0,              0],
+                              [0,   sym.cos(theta),   -sym.sin(theta),        0],
+                              [0,   sym.sin(theta),    sym.cos(theta),        0],
+                              [0,          0,                 0,              1]])
     
     def rotation_around_y(self, theta, out_type = 'np'):
         if out_type == 'np':
@@ -178,7 +178,7 @@ class RobotMotion:
 
         # applying control signal constraints : 
         # assumption : - maxU <= u <= + maxU
-        maxU = 100
+        maxU = 50
         for i in range(0, len(u)):
             if abs(u[i]) > maxU:
                 u[i] = np.sign(u[i]) * maxU
@@ -187,7 +187,8 @@ class RobotMotion:
     
     def Regressor(self, q, dq, ddq):
         # read the content of the text file (where regressor matrix saved):
-        with open('rne_dynamics/test_dynamics.txt', 'r') as file:
+        with open('regressor_matrix.txt', 'r') as file:
+        # with open('rne_dynamics/test_dynamics.txt', 'r') as file:
             content = file.read()
 
         # extract the matrix expression from the content using re :
@@ -199,8 +200,9 @@ class RobotMotion:
         ddq = ddq
 
         # evaluate the matrix expression to get the numpy matrix
+        # Y = np.matrix(eval(matrix_expression))
         Y = np.matrix(eval(matrix_expression))
-
+        
         return Y
 
     
@@ -212,7 +214,7 @@ class RobotMotion:
         # controller params :
         Lambda = 30.0 * np.eye(4)
         Kd     = 15.0 * np.eye(4)
-        Gamma  = 0.05 * np.eye(48)
+        Gamma  = 0.05 * np.eye(44)
 
         # extract robot states :
         q = self.q
@@ -250,7 +252,7 @@ class RobotMotion:
 
         # applying control signal constraints : 
         # assumption : - maxU <= u <= + maxU
-        maxU = 100
+        maxU = 50
         for i in range(0, len(u)):
             if abs(u[i]) > maxU:
                 u[i] = np.sign(u[i]) * maxU
@@ -328,7 +330,9 @@ def main():
     robot = RobotMotion()
 
     # initial estimation :
-    theta_hat = np.ones((48, 1))
+    theta_hat = np.ones((44, 1))
+
+    rate = rospy.Rate(100)
     
     # control loop :
     while not rospy.is_shutdown():    
@@ -339,6 +343,7 @@ def main():
         robot.ctrl_cmd_pub.publish(robot.ctrl_cmd)
         # rospy.loginfo("Tracking error : \n" + str(robot.e) + "\n")
         rospy.loginfo("Control Signals : \n" + str(ctrl_signal) + "\n")
+        rate.sleep()
 
 if __name__ == '__main__':
     main()

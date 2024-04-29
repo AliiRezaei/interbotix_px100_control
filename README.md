@@ -17,7 +17,7 @@ Its better clone the repository inside the `interbotix_ros_xsarms` directory
 
 ## Usage
 
-After properly install the requirements, open a new terminal and start `rosmater` by insert the command `roscore`.
+After properly install the requirements, open a new terminal and start `rosmaster` by insert the command `roscore`.
 in another terminal launch the PX100 rviz model by running the following command:
 
 ```bash 
@@ -30,47 +30,22 @@ $ rosservice call /px100/set_operating_modes "{cmd_type: 'group', name: 'arm', m
 ```
 after properly change the operating mode, you are ready to use the `PID` or `Adaptive` controllers for controlling the PX100.
 
-# PID Controller
+### PID Controller
 open a new terminal and navigate it's where the repository is cloned. so change directory to the scripts folder by `cd scripts` command. now you can run the `main_pid.py` by gollowing command:
 
 ```bash
 $ python3 main_pid.py
 ```
-you see the robot start moving and go to the Home position with joints value $q = [0.0, 0.0, 0.0, 0.0]$ where all of the joints set in the zero. 
-
-
-
-
-## Uploading Code
-
-Upload the code to your Arduino board. You can use either servo_ros_publisher or servo_ros_subscriber. For the first case, upload servo_ros_subscriber to your Arduino board, and then run a node from rosserial_python package. This node is called serial_node.py. Open a new terminal and execute the following command:
+you see the robot start moving and go to the Home position with joints value $q = [0.0, 0.0, 0.0, 0.0]$ where all of the joints set in the zero. by typing the command `rostopic list` appeare the available topics. in the `/px100/commands/desired_joint_states` you can set the desired values for every joints of robot. laterly you can set the desirred joints position by following command:
 
 ```bash
-$ rosrun rosserial_python serial_node.py /dev/ttyACM0
+$ rostopic pub -1 /px100/commands/desired_joint_states std_msgs/Float32MultiArray "layout:
+  dim:
+  - label: ''
+    size: 0
+    stride: 0
+  data_offset: 0
+data: [1.0, 0.5, 0.2, 0.1]" 
+
 ```
-
-By running the above command, your connection with Arduino and ROS has been set up. Now, you can execute servo_pose_cmd node and send position commands for your servo motor. Open a new terminal and try the following command:
-
-```bash
-$ rosrun servo_control servo_pose_cmd
-```
-
-After executing this command, you should see your servo motor move.
-
-Alternatively, you can upload another Arduino code called servo_ros_publisher. Similarly, connect your board and upload code from Arduino IDE. Now, check rostopics by running the following command:
-
-```bash
-$ rostopic list
-```
-
-You can visualize transformed data in the servo_pose topic by echoing it in the terminal with the following command :
-
-```bash
-$ rostopic echo /servo_pose
-```
-
-You will see the servo position printed in the terminal environment.
-
-## Conclusion
-
-With this package, you can easily control your servo motor using ROS commands. By following these simple steps, you can connect ROS and Arduino and control your servo motor's position.
+by using the above command, robot go the desired position : $q = [1.0, 0.5, 0.2, 0.1]$

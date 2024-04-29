@@ -111,7 +111,8 @@ $ cd scripts
 $ python3 main_pid.py
 ```
 The robot will start moving and return to the home position with joint values $q = [0.0, 0.0, 0.0, 0.0]$. You can set desired joint values using the `/px100/commands/desired_joint_states` topic. For exampel if you want to navigate the robot to the $q = [1.0, -0.5, 0.4, -0.2]$ run the following command:
-```
+
+```bash
 $ rostopic pub -1 /px100/commands/desired_joint_states std_msgs/Float32MultiArray "layout:
   dim:
   - label: ''

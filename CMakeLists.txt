@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
-  pinocchio
   interbotix_xs_msgs
 )
 
@@ -137,8 +136,6 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/interbotix_xsarm_dynamics_node.cpp)
-add_executable(test_go_to_home src/test_go_to_home.cpp)
-add_executable(pinocchio_overview src/pinocchio_overview.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -155,9 +152,6 @@ add_executable(pinocchio_overview src/pinocchio_overview.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(test_go_to_home ${catkin_LIBRARIES})
-target_link_libraries(pinocchio_overview ${catkin_LIBRARIES})
-target_link_libraries(pinocchio_overview pinocchio::pinocchio)
 
 
 #############

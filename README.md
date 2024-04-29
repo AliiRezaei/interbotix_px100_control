@@ -110,8 +110,16 @@ $ cd scripts
 ```bash
 $ python3 main_pid.py
 ```
-The robot will start moving and return to the home position with joint values $q = [0.0, 0.0, 0.0, 0.0]$. You can set desired joint values using the `/px100/commands/desired_joint_states` topic.
-
+The robot will start moving and return to the home position with joint values $q = [0.0, 0.0, 0.0, 0.0]$. You can set desired joint values using the `/px100/commands/desired_joint_states` topic. For exampel if you want to navigate the robot to the $q = [1.0, -0.5, 0.4, -0.2]$ run the following command:
+```
+$ rostopic pub -1 /px100/commands/desired_joint_states std_msgs/Float32MultiArray "layout:
+  dim:
+  - label: ''
+    size: 0
+    stride: 0
+  data_offset: 0
+data: [1.0, -0.5, 0.4, -0.2]"
+```
 ### Adaptive Controller
 
 1. Similar to the `PID` controller, go to the scripts directory.
@@ -128,6 +136,6 @@ data: [-0.4, 0.25, -0.1, 0.42]"
 ```
 The robot will move to the desired position $q = [-0.4, 0.25, -0.1, 0.42]$.
 
-# Conclusion
+## Conclusion
 
 In conclusion, this repository provides a comprehensive control package for the Interbotix `PX100` arm manipulator in a ROS environment. Feel free to explore and experiment with different controllers to manipulate the arm effectively.

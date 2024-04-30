@@ -72,9 +72,6 @@ rbtdef.fc = [fc_base_link_frame, fc_shoulder_link, fc_upper_arm_link, fc_forearm
 # Geometry :
 geom = Geometry(rbtdef, ifunc=None)
 
-# print(rbtdef.dynparms())
-# print(geom.Rdh)
-
 # Regressor :
 _rne = rne()
 reg = _rne.regressor(rbtdef, geom, ifunc=None)
@@ -91,7 +88,7 @@ with open('regressor_matrix.txt', 'r') as file:
 
 file_content = file_content.replace('Matrix', 'Y = np.matrix')
 file_content = file_content.replace('sin'   , 'np.sin')
-file_content = file_content.replace('sign'  , 'np.sin')
+file_content = file_content.replace('sign'  , 'np.sign')
 file_content = file_content.replace('cos'   , 'np.cos')
 
 

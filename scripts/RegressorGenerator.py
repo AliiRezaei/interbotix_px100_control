@@ -2,7 +2,7 @@ import sympy
 import numpy as np
 from RobotDefinition import RobotDef
 from RobotGeometry import Geometry
-from RobotDynamics import RicursiveNewtonEuler as rne
+from RobotDynamics import RicursiveNewtonEuler as RNE
 
 # PX100 Properties :
 L1 = 0.08945                # links length
@@ -73,8 +73,8 @@ rbtdef.fc = [fc_base_link_frame, fc_shoulder_link, fc_upper_arm_link, fc_forearm
 geom = Geometry(rbtdef, ifunc=None)
 
 # Regressor :
-_rne = rne()
-reg = _rne.regressor(rbtdef, geom, ifunc=None)
+rne = RNE()
+reg = rne.regressor(rbtdef, geom, ifunc=None)
 
 # Save reg in regressor_matrix.txt :
 text_reg = open(r'regressor_matrix.txt', 'w')

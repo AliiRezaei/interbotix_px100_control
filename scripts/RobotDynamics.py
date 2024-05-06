@@ -154,8 +154,8 @@ class RicursiveNewtonEuler():
         return driveinertia
     
     def skew(self, x):
-        return Matrix([[0    ,  -x[2],    x[1]],
-                       [x[2] ,      0,   -x[0]],
+        return Matrix([[    0,  -x[2],    x[1]],
+                       [ x[2],      0,   -x[0]],
                        [-x[1],   x[0],      0]])
     
     def regressor(self, rbtdef, geom, ifunc=None):
